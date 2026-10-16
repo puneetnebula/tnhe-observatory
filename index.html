@@ -45,7 +45,7 @@
   <section class="api-panel" aria-label="Live Notion research API">
    <div class="eyebrow">End-to-end connection test</div>
    <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap"><div><h2 style="font-size:16px;margin:5px 0">Live research brief from Notion via n8n</h2><p style="font-size:11px;color:var(--muted);margin:0">Fetch the latest saved brief. This panel shows API data separately so the existing prototype visuals remain unchanged.</p></div><span class="tag">LIVE API · TEMPORARY TUNNEL</span></div>
-   <div class="api-controls"><label for="apiDomain" style="font-size:11px;font-weight:700">Domain</label><select id="apiDomain"><option value="Banking">Banking</option><option value="Healthcare">Healthcare</option></select><input id="apiEndpoint" aria-label="n8n webhook endpoint" value="https://show-balance-dayton-programs.trycloudflare.com/webhook/tnhe/domain-brief"/><button class="primary" id="fetchBriefBtn">Fetch live brief</button></div>
+   <div class="api-controls"><label for="apiDomain" style="font-size:11px;font-weight:700">Domain</label><input id="apiDomain" type="text" value="Banking" placeholder="Enter domain name" /><input id="apiEndpoint" aria-label="n8n webhook endpoint" value="https://show-balance-dayton-programs.trycloudflare.com/webhook/tnhe/domain-brief"/><button class="primary" id="fetchBriefBtn">Fetch live brief</button></div>
    <div id="apiStatus" class="api-status">Not connected yet. Choose a domain and select “Fetch live brief”.</div>
    <div id="apiResult" hidden></div>
   </section>
