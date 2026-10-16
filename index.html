@@ -129,7 +129,7 @@ function renderLiveBrief(payload, requestedDomain){
 function escapeHtml(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 async function fetchLiveBrief(){
  const endpoint=$('apiEndpoint').value.trim().replace(/\/$/,'');
- const domain=$('apiDomain').value;
+ const domain=$('apiDomain').value.trim();
  const status=$('apiStatus'); const btn=$('fetchBriefBtn');
  if(!endpoint){status.className='api-status err';status.textContent='Enter the n8n webhook URL first.';return;}
  btn.disabled=true;btn.textContent='Fetching…';status.className='api-status';status.textContent=`Requesting ${domain} from n8n…`;
