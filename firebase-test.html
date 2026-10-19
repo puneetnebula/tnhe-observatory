@@ -1,0 +1,149 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TNHE Firebase Connection Test</title>
+  <style>
+    body {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      font: 16px/1.5 system-ui, sans-serif;
+      color: #172c3d;
+      background: #f4f7f9;
+    }
+    section {
+      background: white;
+      border: 1px solid #dce5eb;
+      border-radius: 10px;
+      padding: 20px;
+      margin: 16px 0;
+    }
+    #status { overflow-wrap: anywhere; }
+    .error { color: #b33e35; }
+    .ok { color: #19704f; }
+    li { margin: 10px 0; }
+  </style>
+</head>
+<body>
+  <h1>TNHE Observatory</h1>
+  <p>Firebase read-only connection test</p>
+
+  <section>
+    <h2>Connection</h2>
+    <p id="status">Connecting…</p>
+  </section>
+
+  <section>
+    <h2>Domains</h2>
+    <ul id="domains"><li>Loading…</li></ul>
+  </section>
+
+  <section>
+    <h2>Published use cases</h2>
+    <ul id="usecases"><li>Loading…</li></ul>
+  </section>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyA1ranIsgNToWgQ6vcBOdUsQ9_Jj6OF2yM",
+      authDomain: "tnhe-trello.firebaseapp.com",
+      projectId: "tnhe-trello",
+      storageBucket: "tnhe-trello.firebasestorage.app",
+      messagingSenderId: "150860031511",
+      appId: "1:150860031511:web:93756b4be6873988e21e52"
+    };
+
+    const statusEl = document.getElementById("status");
+    const domainsEl = document.getElementById("domains");
+    const usecasesEl = document.getElementById("usecases");
+
+    function addItem(list, title, detail = "") {
+      const li = document.createElement("li");
+      const strong = document.createElement("strong");
+      strong.textContent = title;
+      li.appendChild(strong);
+
+      if (detail) {
+        const p = document.createElement("p");
+        p.textContent = detail;
+        li.appendChild(p);
+      }
+
+      list.appendChild(li);
+    }
+
+    async function connect() {
+      try {
+        if (
+          firebaseConfig.apiKey === "PASTE_API_KEY" ||
+          firebaseConfig.storageBucket === "PASTE_STORAGE_BUCKET" ||
+          firebaseConfig.appId === "PASTE_APP_ID"
+        ) {
+          throw new Error(
+            "Replace the three PASTE_ values with your Firebase web configuration."
+          );
+        }
+
+        if (!firebase.apps.length) {
+          firebase.initializeApp(firebaseConfig);
+        }
+
+        const db = firebase.firestore();
+
+        const [domainSnapshot, usecaseSnapshot] = await Promise.all([
+          db.collection("domains").get(),
+
+          db.collection("usecases")
+            .where("status", "==", "published")
+            .where("visibility", "==", "public")
+            .where("publicationReady", "==", true)
+            .get()
+        ]);
+
+        domainsEl.replaceChildren();
+        usecasesEl.replaceChildren();
+
+        domainSnapshot.forEach(doc => {
+          const data = doc.data();
+          addItem(domainsEl, data.name || doc.id, doc.id);
+        });
+
+        if (domainSnapshot.empty) {
+          addItem(domainsEl, "No domains returned");
+        }
+
+        usecaseSnapshot.forEach(doc => {
+          const data = doc.data();
+          addItem(usecasesEl, data.title || doc.id, data.summary || "");
+        });
+
+        if (usecaseSnapshot.empty) {
+          addItem(
+            usecasesEl,
+            "No published use cases yet",
+            "Expected: the starter record is currently draft/private."
+          );
+        }
+
+        statusEl.className = "ok";
+        statusEl.textContent =
+          "Connected successfully. Both Firestore queries worked.";
+
+      } catch (error) {
+        statusEl.className = "error";
+        statusEl.textContent =
+          "Connection failed: " + error.message;
+        console.error(error);
+      }
+    }
+
+    connect();
+  </script>
+</body>
+</html>
