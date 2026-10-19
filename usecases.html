@@ -1,0 +1,945 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Use Case & Case Study Library | TNHE Observatory</title>
+  <meta name="description" content="Explore AI use cases and evidence-backed case studies across industries, curated by The New Humanity Era.">
+
+  <style>
+    :root {
+      --navy: #102c42;
+      --teal: #087e83;
+      --paper: #f4f7f9;
+      --ink: #1c3040;
+      --muted: #657784;
+      --line: #dce5ea;
+      --white: #ffffff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.55;
+    }
+
+    a { color: inherit; }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 18px 5%;
+      background: var(--white);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand {
+      color: var(--navy);
+      font-weight: 800;
+      letter-spacing: .07em;
+      font-size: 14px;
+      text-decoration: none;
+    }
+
+    .brand span {
+      display: block;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .15em;
+    }
+
+    .back-link {
+      color: var(--teal);
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    main {
+      max-width: 1240px;
+      margin: auto;
+      padding: 48px 24px 70px;
+    }
+
+    .eyebrow {
+      color: var(--teal);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      max-width: 760px;
+      margin: 10px 0 12px;
+      color: var(--navy);
+      font-size: clamp(32px, 4vw, 48px);
+      line-height: 1.12;
+      letter-spacing: -.035em;
+    }
+
+    .intro {
+      max-width: 720px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 25px 0 32px;
+    }
+
+    .stat {
+      padding: 9px 13px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: white;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .stat strong {
+      margin-right: 5px;
+      color: var(--navy);
+      font-size: 15px;
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: minmax(220px, 2fr) repeat(3, minmax(140px, 1fr));
+      gap: 12px;
+      padding: 17px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--white);
+      box-shadow: 0 5px 20px #102c4208;
+    }
+
+    input, select {
+      width: 100%;
+      min-width: 0;
+      padding: 12px 13px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: white;
+      color: var(--ink);
+      font: inherit;
+      font-size: 13px;
+    }
+
+    input:focus, select:focus {
+      outline: 2px solid #087e8333;
+      border-color: var(--teal);
+    }
+
+    .results-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin: 25px 0 16px;
+    }
+
+    .results-bar h2 {
+      margin: 0;
+      color: var(--navy);
+      font-size: 18px;
+    }
+
+    .results-count {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      display: flex;
+      flex-direction: column;
+      min-height: 275px;
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: var(--white);
+      transition: transform .18s ease, box-shadow .18s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 30px #102c4210;
+    }
+
+    .card-top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 14px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 8px;
+      border-radius: 5px;
+      background: #e8f4f3;
+      color: #086b70;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .tag.case-study {
+      background: #edf0fa;
+      color: #465a9c;
+    }
+
+    .tag.evidence {
+      background: #f0f3f5;
+      color: #566875;
+    }
+
+    .card h3 {
+      margin: 0 0 10px;
+      color: var(--navy);
+      font-size: 19px;
+      line-height: 1.3;
+    }
+
+    .card p {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .card-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: auto;
+      padding-top: 5px;
+    }
+
+    .meta-chip {
+      padding: 5px 8px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      color: #526674;
+      font-size: 11px;
+    }
+
+    .details-button {
+      align-self: flex-start;
+      margin-top: 19px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: var(--teal);
+      cursor: pointer;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .details-button:hover { text-decoration: underline; }
+
+    .state {
+      grid-column: 1 / -1;
+      padding: 55px 22px;
+      border: 1px dashed #cbd8df;
+      border-radius: 13px;
+      background: #ffffffa8;
+      text-align: center;
+    }
+
+    .state h3 {
+      margin: 0 0 8px;
+      color: var(--navy);
+    }
+
+    .state p {
+      max-width: 520px;
+      margin: 0 auto;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .state.error h3 { color: #9c3c3c; }
+
+    .footer {
+      margin-top: 48px;
+      padding-top: 20px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .footer a { color: var(--teal); }
+
+    dialog {
+      width: min(720px, calc(100% - 28px));
+      max-height: 85vh;
+      padding: 0;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      color: var(--ink);
+      box-shadow: 0 25px 90px #0003;
+    }
+
+    dialog::backdrop { background: #10202e99; }
+
+    .modal-header {
+      position: sticky;
+      top: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 17px 22px;
+      border-bottom: 1px solid var(--line);
+      background: white;
+    }
+
+    .modal-header strong {
+      color: var(--navy);
+      font-size: 12px;
+      letter-spacing: .08em;
+    }
+
+    .close-button {
+      width: 34px;
+      height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: white;
+      cursor: pointer;
+      font-size: 20px;
+    }
+
+    .modal-content { padding: 25px; }
+
+    .modal-content h2 {
+      margin: 10px 0 12px;
+      color: var(--navy);
+      font-size: 29px;
+      line-height: 1.2;
+    }
+
+    .modal-content h3 {
+      margin: 23px 0 7px;
+      color: var(--navy);
+      font-size: 15px;
+    }
+
+    .modal-content p, .modal-content li {
+      color: #526674;
+      font-size: 14px;
+      overflow-wrap: anywhere;
+    }
+
+    .modal-content ul { padding-left: 20px; }
+
+    .source-link {
+      display: block;
+      margin: 7px 0;
+      color: var(--teal);
+      font-size: 13px;
+      overflow-wrap: anywhere;
+    }
+
+    @media (max-width: 900px) {
+      .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 580px) {
+      main { padding: 32px 16px 50px; }
+      .cards, .filters { grid-template-columns: 1fr; }
+      .topbar { padding: 15px 16px; }
+      .card { min-height: auto; }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="topbar">
+    <a class="brand" href="./index.html">
+      TNHE
+      <span>OBSERVATORY</span>
+    </a>
+    <a class="back-link" href="./index.html">← Back to Observatory</a>
+  </header>
+
+  <main>
+    <div class="eyebrow">Research & Intelligence</div>
+    <h1>Discover AI transformation in practice.</h1>
+    <p class="intro">
+      Explore AI use cases, real-world implementations and the evidence
+      behind emerging transformations across industries.
+    </p>
+
+    <div class="stats" aria-live="polite">
+      <div class="stat"><strong id="total-count">—</strong> published records</div>
+      <div class="stat"><strong id="usecase-count">—</strong> use cases</div>
+      <div class="stat"><strong id="casestudy-count">—</strong> case studies</div>
+    </div>
+
+    <section class="filters" aria-label="Search and filter records">
+      <input id="search" type="search" placeholder="Search titles, industries, technologies…" aria-label="Search records">
+      <select id="type-filter" aria-label="Content type">
+        <option value="">All content types</option>
+        <option value="usecase">Use cases</option>
+        <option value="caseStudy">Case studies</option>
+      </select>
+      <select id="industry-filter" aria-label="Industry">
+        <option value="">All industries</option>
+      </select>
+      <select id="subdomain-filter" aria-label="Subdomain">
+        <option value="">All subdomains</option>
+      </select>
+      <select id="evidence-filter" aria-label="Evidence status">
+        <option value="">All evidence statuses</option>
+        <option value="verified">Verified / evidence-backed</option>
+        <option value="mixed">Mixed evidence</option>
+        <option value="illustrative">Illustrative / proposed</option>
+        <option value="other">Other / not specified</option>
+      </select>
+    </section>
+
+    <div class="results-bar">
+      <h2>Explore the library</h2>
+      <span class="results-count" id="results-count" aria-live="polite">Connecting to library…</span>
+    </div>
+
+    <section class="cards" id="cards" aria-live="polite">
+      <div class="state">
+        <h3>Loading the library</h3>
+        <p>Retrieving publicly published records from the TNHE research database.</p>
+      </div>
+    </section>
+
+    <div class="footer">
+      The New Humanity Era · TNHE Observatory
+      <br>
+      Research records are shown according to their publication and visibility status.
+      Evidence labels describe the status recorded by the research team; they are not independent endorsements.
+    </div>
+  </main>
+
+  <dialog id="details-dialog" aria-labelledby="detail-title">
+    <div class="modal-header">
+      <strong>TNHE RESEARCH RECORD</strong>
+      <button class="close-button" id="close-dialog" aria-label="Close details">×</button>
+    </div>
+    <div class="modal-content" id="detail-content"></div>
+  </dialog>
+
+  <!-- Firebase public web configuration. Never place service-account keys here. -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyA1ranISgNTOWgQ6vcB0dUsQ9_Lj6OF2yM",
+      authDomain: "tnhe-trello.firebaseapp.com",
+      projectId: "tnhe-trello",
+      storageBucket: "tnhe-trello.firebasestorage.app",
+      messagingSenderId: "150860031511",
+      appId: "1:150860031511:web:93756b4be6873988e21e52",
+      measurementId: "G-YC22T8Z4E6"
+    };
+
+    const db = (() => {
+      firebase.initializeApp(firebaseConfig);
+      return firebase.firestore();
+    })();
+
+    const state = {
+      records: [],
+      domains: [],
+      subdomains: []
+    };
+
+    const $ = id => document.getElementById(id);
+
+    function text(value) {
+      if (value === null || value === undefined) return "";
+      if (typeof value === "string" || typeof value === "number" ||
+          typeof value === "boolean") return String(value);
+      return "";
+    }
+
+    function firstText(...values) {
+      for (const value of values) {
+        const result = text(value).trim();
+        if (result) return result;
+      }
+      return "";
+    }
+
+    function asArray(value) {
+      if (Array.isArray(value)) return value;
+      return value ? [value] : [];
+    }
+
+    function humanize(value) {
+      return text(value)
+        .replace(/[-_]/g, " ")
+        .replace(/\b\w/g, char => char.toUpperCase());
+    }
+
+    function evidenceLabel(record) {
+      const raw = firstText(record.evidenceStatus, record.evidenceLevel);
+      return raw ? humanize(raw) : "Not specified";
+    }
+
+    function evidenceCategory(record) {
+      const raw = firstText(record.evidenceStatus, record.evidenceLevel)
+        .toLowerCase();
+
+      if (/illustrative|hypothetical|proposed|simulation|concept/.test(raw)) {
+        return "illustrative";
+      }
+      if (/mixed|partial|developing|limited/.test(raw)) return "mixed";
+      if (/verified|validated|evidence.backed|empirical|documented/.test(raw)) {
+        return "verified";
+      }
+      return "other";
+    }
+
+    function recordIndustry(record) {
+      const id = firstText(record.domainId, record.domain);
+      const name = firstText(record.domainName, record.industry);
+
+      if (name) return name;
+
+      const match = state.domains.find(domain =>
+        [domain.id, domain.canonicalId, domain.slug, domain.name]
+          .some(value => text(value).toLowerCase() === id.toLowerCase())
+      );
+
+      return match ? firstText(match.name, match.title) : humanize(id) || "Unclassified";
+    }
+
+    function subdomainNames(record) {
+      const ids = [
+        ...asArray(record.subdomainIds),
+        ...asArray(record.subdomainId),
+        ...asArray(record.subdomains)
+      ];
+
+      const names = ids.map(item => {
+        if (typeof item === "object" && item !== null) {
+          return firstText(item.name, item.title, item.label, item.id);
+        }
+
+        const id = text(item);
+        const match = state.subdomains.find(subdomain =>
+          [subdomain.id, subdomain.canonicalId, subdomain.slug, subdomain.name]
+            .some(value => text(value).toLowerCase() === id.toLowerCase())
+        );
+
+        return match ? firstText(match.name, match.title) : humanize(id);
+      }).filter(Boolean);
+
+      if (record.subdomainName) names.push(text(record.subdomainName));
+      return [...new Set(names)];
+    }
+
+    function normalizeRecord(id, data, type) {
+      return {
+        ...data,
+        id,
+        _type: type,
+        _title: firstText(data.title, data.name, data.canonicalId, id),
+        _summary: firstText(data.summary, data.shortDescription, data.description,
+          data.problemStatement, "No summary has been provided yet."),
+        _industry: recordIndustry(data),
+        _subdomains: subdomainNames(data)
+      };
+    }
+
+    async function loadCollection(collection, constraints = []) {
+      let query = db.collection(collection);
+      constraints.forEach(([field, operator, value]) => {
+        query = query.where(field, operator, value);
+      });
+
+      const snapshot = await query.get();
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    }
+
+    async function loadLibrary() {
+      try {
+        const results = await Promise.allSettled([
+          loadCollection("usecases", [
+            ["status", "==", "published"],
+            ["visibility", "==", "public"],
+            ["publicationReady", "==", true]
+          ]),
+          loadCollection("caseStudies", [
+            ["status", "==", "published"],
+            ["visibility", "==", "public"]
+          ]),
+          loadCollection("domains"),
+          loadCollection("subdomains")
+        ]);
+
+        const names = ["use cases", "case studies", "industries", "subdomains"];
+        const failures = results
+          .map((result, index) => result.status === "rejected"
+            ? `${names[index]}: ${result.reason?.message || "request failed"}`
+            : null)
+          .filter(Boolean);
+
+        if (results[2].status === "fulfilled") state.domains = results[2].value;
+        if (results[3].status === "fulfilled") state.subdomains = results[3].value;
+
+        const usecases = results[0].status === "fulfilled"
+          ? results[0].value.map(record => normalizeRecord(record.id, record, "usecase"))
+          : [];
+
+        const caseStudies = results[1].status === "fulfilled"
+          ? results[1].value.map(record => normalizeRecord(record.id, record, "caseStudy"))
+          : [];
+
+        state.records = [...usecases, ...caseStudies];
+
+        populateFilters();
+        updateStats();
+        renderCards();
+
+        if (failures.length) {
+          console.error("Some TNHE library requests failed:", failures);
+          $("results-count").textContent =
+            "Some records could not be loaded. Check the browser console.";
+        }
+      } catch (error) {
+        console.error("TNHE library loading failed:", error);
+        $("cards").innerHTML = `
+          <div class="state error">
+            <h3>Unable to load the library</h3>
+            <p>The database could not be reached. Please refresh the page or try again later.</p>
+          </div>`;
+        $("results-count").textContent = "Connection error";
+      }
+    }
+
+    function populateFilters() {
+      const industries = new Set();
+      const subdomains = new Set();
+
+      state.records.forEach(record => {
+        if (record._industry && record._industry !== "Unclassified") {
+          industries.add(record._industry);
+        }
+        record._subdomains.forEach(name => subdomains.add(name));
+      });
+
+      // Include known domain and subdomain labels even before records are published.
+      state.domains.forEach(item => {
+        const name = firstText(item.name, item.title);
+        if (name) industries.add(name);
+      });
+
+      state.subdomains.forEach(item => {
+        const name = firstText(item.name, item.title);
+        if (name) subdomains.add(name);
+      });
+
+      setOptions("industry-filter", [...industries].sort(), "All industries");
+      setOptions("subdomain-filter", [...subdomains].sort(), "All subdomains");
+    }
+
+    function setOptions(id, values, firstLabel) {
+      const select = $(id);
+      const previous = select.value;
+      select.replaceChildren(new Option(firstLabel, ""));
+
+      values.forEach(value => select.add(new Option(value, value)));
+      if (values.includes(previous)) select.value = previous;
+    }
+
+    function updateStats() {
+      $("total-count").textContent = state.records.length;
+      $("usecase-count").textContent =
+        state.records.filter(record => record._type === "usecase").length;
+      $("casestudy-count").textContent =
+        state.records.filter(record => record._type === "caseStudy").length;
+    }
+
+    function searchableText(record) {
+      const excluded = new Set(["_type", "_title", "_summary", "_industry", "_subdomains"]);
+      const parts = [
+        record._title,
+        record._summary,
+        record._industry,
+        record._subdomains.join(" "),
+        evidenceLabel(record)
+      ];
+
+      Object.entries(record).forEach(([key, value]) => {
+        if (key.startsWith("_") || excluded.has(key)) return;
+        if (typeof value === "string" || typeof value === "number") parts.push(String(value));
+        else if (Array.isArray(value)) {
+          parts.push(value.map(item =>
+            typeof item === "string" || typeof item === "number"
+              ? String(item)
+              : item && typeof item === "object"
+                ? Object.values(item).filter(v => typeof v === "string").join(" ")
+                : ""
+          ).join(" "));
+        }
+      });
+
+      return parts.join(" ").toLowerCase();
+    }
+
+    function filteredRecords() {
+      const query = $("search").value.trim().toLowerCase();
+      const type = $("type-filter").value;
+      const industry = $("industry-filter").value;
+      const subdomain = $("subdomain-filter").value;
+      const evidence = $("evidence-filter").value;
+
+      return state.records.filter(record => {
+        if (type && record._type !== type) return false;
+        if (industry && record._industry !== industry) return false;
+        if (subdomain && !record._subdomains.includes(subdomain)) return false;
+        if (evidence && evidenceCategory(record) !== evidence) return false;
+        if (query && !searchableText(record).includes(query)) return false;
+        return true;
+      });
+    }
+
+    function addChip(parent, label, className = "") {
+      const span = document.createElement("span");
+      span.className = `tag ${className}`.trim();
+      span.textContent = label;
+      parent.appendChild(span);
+    }
+
+    function renderCards() {
+      const container = $("cards");
+      const records = filteredRecords();
+
+      $("results-count").textContent =
+        `${records.length} ${records.length === 1 ? "record" : "records"}`;
+
+      container.replaceChildren();
+
+      if (!records.length) {
+        const hasPublishedRecords = state.records.length > 0;
+        const box = document.createElement("div");
+        box.className = "state";
+
+        const heading = document.createElement("h3");
+        const paragraph = document.createElement("p");
+
+        heading.textContent = hasPublishedRecords
+          ? "No records match these filters"
+          : "The library is being built";
+
+        paragraph.textContent = hasPublishedRecords
+          ? "Try a different search term or reset one or more filters."
+          : "No records have been published for public viewing yet. As the TNHE research team approves and publishes use cases and case studies in Firebase, they will appear here automatically.";
+
+        box.append(heading, paragraph);
+
+        if (hasPublishedRecords) {
+          const reset = document.createElement("button");
+          reset.className = "details-button";
+          reset.textContent = "Clear all filters";
+          reset.addEventListener("click", clearFilters);
+          box.appendChild(reset);
+        }
+
+        container.appendChild(box);
+        return;
+      }
+
+      records.forEach(record => {
+        const article = document.createElement("article");
+        article.className = "card";
+
+        const top = document.createElement("div");
+        top.className = "card-top";
+        addChip(top, record._type === "usecase" ? "Use case" : "Case study",
+          record._type === "caseStudy" ? "case-study" : "");
+        addChip(top, evidenceLabel(record), "evidence");
+
+        const title = document.createElement("h3");
+        title.textContent = record._title;
+
+        const summary = document.createElement("p");
+        summary.textContent = record._summary;
+
+        const meta = document.createElement("div");
+        meta.className = "card-meta";
+
+        const industry = document.createElement("span");
+        industry.className = "meta-chip";
+        industry.textContent = record._industry;
+        meta.appendChild(industry);
+
+        record._subdomains.slice(0, 2).forEach(name => {
+          const chip = document.createElement("span");
+          chip.className = "meta-chip";
+          chip.textContent = name;
+          meta.appendChild(chip);
+        });
+
+        const button = document.createElement("button");
+        button.className = "details-button";
+        button.textContent = "Explore details →";
+        button.addEventListener("click", () => showDetails(record));
+
+        article.append(top, title, summary, meta, button);
+        container.appendChild(article);
+      });
+    }
+
+    function appendTextBlock(parent, heading, value) {
+      if (value === null || value === undefined || value === "") return;
+
+      const h3 = document.createElement("h3");
+      h3.textContent = heading;
+      parent.appendChild(h3);
+
+      if (Array.isArray(value)) {
+        const list = document.createElement("ul");
+        value.forEach(item => {
+          const li = document.createElement("li");
+          li.textContent = typeof item === "object" && item !== null
+            ? firstText(item.name, item.title, item.label, item.description,
+              item.url, JSON.stringify(item))
+            : text(item);
+          list.appendChild(li);
+        });
+        parent.appendChild(list);
+      } else {
+        const p = document.createElement("p");
+        p.textContent = typeof value === "object" ? JSON.stringify(value, null, 2) : text(value);
+        parent.appendChild(p);
+      }
+    }
+
+    function showDetails(record) {
+      const content = $("detail-content");
+      content.replaceChildren();
+
+      const type = document.createElement("div");
+      type.className = "eyebrow";
+      type.textContent = record._type === "usecase" ? "AI use case" : "Real-world case study";
+      content.appendChild(type);
+
+      const title = document.createElement("h2");
+      title.id = "detail-title";
+      title.textContent = record._title;
+      content.appendChild(title);
+
+      const intro = document.createElement("p");
+      intro.textContent = record._summary;
+      content.appendChild(intro);
+
+      appendTextBlock(content, "Industry", record._industry);
+      appendTextBlock(content, "Subdomains", record._subdomains);
+      appendTextBlock(content, "Evidence status", evidenceLabel(record));
+
+      const preferredFields = [
+        ["Problem statement", "problemStatement"],
+        ["AI intervention", "aiIntervention"],
+        ["AI capabilities", "aiCapabilities"],
+        ["Business impact", "businessImpact"],
+        ["Impact categories", "impactCategories"],
+        ["Outcomes and metrics", "metrics"],
+        ["Organizations", "organizationNames"],
+        ["Technologies", "technologyNames"],
+        ["Timeline", "timeline"],
+        ["Limitations and risks", "limitations"],
+        ["Evidence notes", "evidenceNote"],
+        ["Research summary", "researchSummary"],
+        ["Methodology", "methodology"]
+      ];
+
+      preferredFields.forEach(([label, field]) => {
+        if (record[field] !== undefined) appendTextBlock(content, label, record[field]);
+      });
+
+      const sources = [
+        ...asArray(record.sources),
+        ...asArray(record.sourceUrls),
+        ...asArray(record.sourceIds)
+      ];
+
+      const validSources = sources.map(source => {
+        if (typeof source === "string") return { label: source, url: source };
+        if (source && typeof source === "object") {
+          return {
+            label: firstText(source.title, source.name, source.label, source.url),
+            url: firstText(source.url, source.href, source.sourceUrl)
+          };
+        }
+        return null;
+      }).filter(source => source && source.url);
+
+      if (validSources.length) {
+        const heading = document.createElement("h3");
+        heading.textContent = "Sources";
+        content.appendChild(heading);
+
+        validSources.forEach(source => {
+          const link = document.createElement("a");
+          link.className = "source-link";
+          link.textContent = source.label || source.url;
+          link.href = source.url;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          content.appendChild(link);
+        });
+      }
+
+      $("details-dialog").showModal();
+    }
+
+    function clearFilters() {
+      $("search").value = "";
+      $("type-filter").value = "";
+      $("industry-filter").value = "";
+      $("subdomain-filter").value = "";
+      $("evidence-filter").value = "";
+      renderCards();
+    }
+
+    ["search", "type-filter", "industry-filter", "subdomain-filter", "evidence-filter"]
+      .forEach(id => $(id).addEventListener(
+        id === "search" ? "input" : "change", renderCards
+      ));
+
+    $("close-dialog").addEventListener("click", () => $("details-dialog").close());
+
+    $("details-dialog").addEventListener("click", event => {
+      if (event.target === $("details-dialog")) $("details-dialog").close();
+    });
+
+    loadLibrary();
+  </script>
+</body>
+</html>
