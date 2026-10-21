@@ -106,8 +106,16 @@
       border-radius: 9px;
       background: white;
       color: var(--muted);
+      cursor: pointer;
       font-size: 12px;
+      font-family: inherit;
+      text-align: left;
+      transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
     }
+
+    .stat:hover { border-color: #9ebfc3; transform: translateY(-1px); }
+    .stat:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+    .stat[aria-pressed="true"] { border-color: var(--teal); box-shadow: 0 0 0 2px #087e8318; }
 
     .stat strong {
       margin-right: 5px;
@@ -279,6 +287,9 @@
 
     .details-button:hover { text-decoration: underline; }
 
+    .card-actions { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 10px; }
+    .card-actions .details-button { margin-top: 8px; }
+
     .state {
       grid-column: 1 / -1;
       padding: 55px 22px;
@@ -422,12 +433,12 @@
     </div>
     <p class="view-note" id="view-note" aria-live="polite">Approved public records only.</p>
 
-    <div class="stats" aria-live="polite">
-      <div class="stat"><strong id="total-count">—</strong> visible records</div>
-      <div class="stat"><strong id="domain-count">—</strong> domains</div>
-      <div class="stat"><strong id="subdomain-count">—</strong> subdomains</div>
-      <div class="stat"><strong id="usecase-count">—</strong> use cases</div>
-      <div class="stat"><strong id="casestudy-count">—</strong> case studies</div>
+    <div class="stats" aria-label="Filter by record type">
+      <button class="stat" type="button" data-record-type="" aria-pressed="true"><strong id="total-count">—</strong> visible records</button>
+      <button class="stat" type="button" data-record-type="domain" aria-pressed="false"><strong id="domain-count">—</strong> domains</button>
+      <button class="stat" type="button" data-record-type="subdomain" aria-pressed="false"><strong id="subdomain-count">—</strong> subdomains</button>
+      <button class="stat" type="button" data-record-type="usecase" aria-pressed="false"><strong id="usecase-count">—</strong> use cases</button>
+      <button class="stat" type="button" data-record-type="caseStudy" aria-pressed="false"><strong id="casestudy-count">—</strong> case studies</button>
     </div>
 
     <section class="filters" aria-label="Search and filter records">
@@ -560,19 +571,66 @@
       if (record._type === "domain") return firstText(record.name, record.title, record.canonicalId);
       if (record._type === "subdomain") {
         const parent = state.domains.find(domain =>
-          [domain.id, domain.canonicalId, domain.slug]
-            .some(value => text(value).toLowerCase() === text(record.domainId).toLowerCase())
+          recordReferencesDomain(record, domain)
         );
         return parent ? firstText(parent.name, parent.title) : "Unclassified";
       }
       const id = firstText(record.domainId, record.domain);
       const name = firstText(record.domainName, record.industry);
       if (name) return name;
-      const match = state.domains.find(domain =>
-        [domain.id, domain.canonicalId, domain.slug, domain.name]
-          .some(value => text(value).toLowerCase() === id.toLowerCase())
-      );
+      const match = state.domains.find(domain => recordReferencesDomain(record, domain))
+        || state.domains.find(domain => id && identityValues(domain).includes(key(id)));
       return match ? firstText(match.name, match.title) : humanize(id) || "Unclassified";
+    }
+
+    function key(value) { return text(value).trim().toLowerCase(); }
+
+    function identityValues(record) {
+      return [record.id, record.canonicalId, record.slug, record.name, record.title]
+        .map(key).filter(Boolean);
+    }
+
+    function relationValues(record, fields) {
+      return fields.flatMap(field => asArray(record[field])).map(value => {
+        if (value && typeof value === "object") {
+          return [value.id, value.canonicalId, value.slug, value.name, value.title]
+            .map(key).filter(Boolean);
+        }
+        return [key(value)].filter(Boolean);
+      }).flat();
+    }
+
+    function recordReferencesDomain(record, domain) {
+      const references = relationValues(record, [
+        "domainId", "domain", "domainName", "domainIds", "domainNames", "industry"
+      ]);
+      return references.some(value => identityValues(domain).includes(value));
+    }
+
+    function recordReferencesSubdomain(record, subdomain) {
+      const references = relationValues(record, [
+        "subdomainId", "subdomainIds", "subdomains", "subdomainName"
+      ]);
+      return references.some(value => identityValues(subdomain).includes(value));
+    }
+
+    function subdomainsForDomain(domain) {
+      return state.subdomains.filter(subdomain => recordReferencesDomain(subdomain, domain));
+    }
+
+    function usecasesForDomain(domain) {
+      const childSubdomains = subdomainsForDomain(domain);
+      return state.records.filter(record => record._type === "usecase" && (
+        recordReferencesDomain(record, domain) ||
+        childSubdomains.some(subdomain => recordReferencesSubdomain(record, subdomain))
+      ));
+    }
+
+    function usecasesForSubdomain(subdomain) {
+      return state.records.filter(record => record._type === "usecase" && (
+        recordReferencesSubdomain(record, subdomain) ||
+        record._subdomains.some(name => key(name) === key(firstText(subdomain.name, subdomain.title)))
+      ));
     }
 
     function subdomainNames(record) {
@@ -739,6 +797,14 @@
         state.records.filter(record => record._type === "usecase").length;
       $("casestudy-count").textContent =
         state.records.filter(record => record._type === "caseStudy").length;
+      updateStatButtons();
+    }
+
+    function updateStatButtons() {
+      const selectedType = $("type-filter").value;
+      document.querySelectorAll("[data-record-type]").forEach(button => {
+        button.setAttribute("aria-pressed", String(button.dataset.recordType === selectedType));
+      });
     }
 
     function searchableText(record) {
@@ -774,6 +840,8 @@
       const industry = $("industry-filter").value;
       const subdomain = $("subdomain-filter").value;
       const evidence = $("evidence-filter").value;
+
+      updateStatButtons();
 
       return state.records.filter(record => {
         if (type && record._type !== type) return false;
@@ -876,9 +944,55 @@
         button.textContent = "Explore details →";
         button.addEventListener("click", () => showDetails(record));
 
-        article.append(top, title, summary, meta, button);
+        article.append(top, title, summary, meta);
+        appendRelatedActions(article, record);
+        article.appendChild(button);
         container.appendChild(article);
       });
+    }
+
+    function appendRelatedActions(parent, record) {
+      if (record._type !== "domain" && record._type !== "subdomain") return;
+
+      const actions = document.createElement("div");
+      actions.className = "card-actions";
+
+      if (record._type === "domain") {
+        const subdomainCount = subdomainsForDomain(record).length;
+        const subdomainsButton = document.createElement("button");
+        subdomainsButton.className = "details-button";
+        subdomainsButton.type = "button";
+        subdomainsButton.textContent = `View ${subdomainCount} subdomains →`;
+        subdomainsButton.addEventListener("click", () => showRelatedRecords(record, "subdomain"));
+        actions.appendChild(subdomainsButton);
+      }
+
+      const usecaseCount = record._type === "domain"
+        ? usecasesForDomain(record).length
+        : usecasesForSubdomain(record).length;
+      const usecasesButton = document.createElement("button");
+      usecasesButton.className = "details-button";
+      usecasesButton.type = "button";
+      usecasesButton.textContent = `View ${usecaseCount} use cases →`;
+      usecasesButton.addEventListener("click", () => showRelatedRecords(record, "usecase"));
+      actions.appendChild(usecasesButton);
+      parent.appendChild(actions);
+    }
+
+    function showRelatedRecords(record, type) {
+      clearFilters();
+      $("type-filter").value = type;
+      if (record._type === "domain") {
+        $("industry-filter").value = firstText(record.name, record.title, record.canonicalId);
+      } else {
+        const parent = state.domains.find(domain => recordReferencesDomain(record, domain));
+        if (parent) $("industry-filter").value = firstText(parent.name, parent.title);
+        if (type === "usecase") {
+          $("subdomain-filter").value = firstText(record.name, record.title);
+        }
+      }
+      renderCards();
+      $("cards").scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
     function appendTextBlock(parent, heading, value) {
@@ -927,6 +1041,7 @@
       appendTextBlock(content, "Industry", record._industry);
       appendTextBlock(content, "Subdomains", record._subdomains);
       appendTextBlock(content, "Evidence status", evidenceLabel(record));
+      appendRelatedActions(content, record);
 
       const preferredFields = [
         ["Problem statement", "problemStatement"],
@@ -1028,6 +1143,15 @@
     $("all-data-btn").addEventListener("click", () => setDataView("all"));
 
     $("close-dialog").addEventListener("click", () => $("details-dialog").close());
+
+    document.querySelectorAll("[data-record-type]").forEach(button => {
+      button.addEventListener("click", () => {
+        clearFilters();
+        $("type-filter").value = button.dataset.recordType;
+        renderCards();
+        $("cards").scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
 
     $("details-dialog").addEventListener("click", event => {
       if (event.target === $("details-dialog")) $("details-dialog").close();
