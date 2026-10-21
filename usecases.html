@@ -115,6 +115,26 @@
       font-size: 15px;
     }
 
+    .view-switch {
+      display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
+      margin: 26px 0 0; padding: 6px; width: fit-content;
+      border: 1px solid var(--line); border-radius: 11px; background: #eaf0f3;
+    }
+    .view-switch-label { padding: 0 10px; color: var(--muted); font-size: 12px; font-weight: 700; }
+    .view-button {
+      border: 0; border-radius: 7px; padding: 10px 14px; background: transparent;
+      color: #526674; cursor: pointer; font: inherit; font-size: 13px; font-weight: 750;
+    }
+    .view-button[aria-pressed="true"] { background: var(--white); color: var(--navy); box-shadow: 0 2px 8px #102c4212; }
+    .view-button.all-data[aria-pressed="true"] { background: var(--navy); color: var(--white); }
+    .view-note { margin: 9px 0 0; color: var(--muted); font-size: 12px; }
+    .record-json {
+      max-height: 420px; overflow: auto; padding: 14px; border: 1px solid var(--line);
+      border-radius: 8px; background: #f7f9fa; color: #344b5b;
+      font: 12px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace;
+      white-space: pre-wrap; overflow-wrap: anywhere;
+    }
+
     .filters {
       display: grid;
       grid-template-columns: minmax(220px, 2fr) repeat(3, minmax(140px, 1fr));
@@ -395,8 +415,17 @@
       behind emerging transformations across industries.
     </p>
 
+    <div class="view-switch" role="group" aria-label="Choose library view">
+      <span class="view-switch-label">View</span>
+      <button class="view-button" id="public-view-btn" type="button" aria-pressed="true">Public library</button>
+      <button class="view-button all-data" id="all-data-btn" type="button" aria-pressed="false">All Data</button>
+    </div>
+    <p class="view-note" id="view-note" aria-live="polite">Approved public records only.</p>
+
     <div class="stats" aria-live="polite">
-      <div class="stat"><strong id="total-count">—</strong> published records</div>
+      <div class="stat"><strong id="total-count">—</strong> visible records</div>
+      <div class="stat"><strong id="domain-count">—</strong> domains</div>
+      <div class="stat"><strong id="subdomain-count">—</strong> subdomains</div>
       <div class="stat"><strong id="usecase-count">—</strong> use cases</div>
       <div class="stat"><strong id="casestudy-count">—</strong> case studies</div>
     </div>
@@ -405,6 +434,8 @@
       <input id="search" type="search" placeholder="Search titles, industries, technologies…" aria-label="Search records">
       <select id="type-filter" aria-label="Content type">
         <option value="">All content types</option>
+        <option value="domain">Domains</option>
+        <option value="subdomain">Subdomains</option>
         <option value="usecase">Use cases</option>
         <option value="caseStudy">Case studies</option>
       </select>
@@ -474,7 +505,8 @@
     const state = {
       records: [],
       domains: [],
-      subdomains: []
+      subdomains: [],
+      dataView: "public"
     };
 
     const $ = id => document.getElementById(id);
@@ -525,16 +557,21 @@
     }
 
     function recordIndustry(record) {
+      if (record._type === "domain") return firstText(record.name, record.title, record.canonicalId);
+      if (record._type === "subdomain") {
+        const parent = state.domains.find(domain =>
+          [domain.id, domain.canonicalId, domain.slug]
+            .some(value => text(value).toLowerCase() === text(record.domainId).toLowerCase())
+        );
+        return parent ? firstText(parent.name, parent.title) : "Unclassified";
+      }
       const id = firstText(record.domainId, record.domain);
       const name = firstText(record.domainName, record.industry);
-
       if (name) return name;
-
       const match = state.domains.find(domain =>
         [domain.id, domain.canonicalId, domain.slug, domain.name]
           .some(value => text(value).toLowerCase() === id.toLowerCase())
       );
-
       return match ? firstText(match.name, match.title) : humanize(id) || "Unclassified";
     }
 
@@ -564,16 +601,13 @@
     }
 
     function normalizeRecord(id, data, type) {
-      return {
-        ...data,
-        id,
-        _type: type,
-        _title: firstText(data.title, data.name, data.canonicalId, id),
-        _summary: firstText(data.summary, data.shortDescription, data.description,
-          data.problemStatement, "No summary has been provided yet."),
-        _industry: recordIndustry(data),
-        _subdomains: subdomainNames(data)
-      };
+      const record = { ...data, id, _type: type };
+      record._title = firstText(data.title, data.name, data.canonicalId, id);
+      record._summary = firstText(data.summary, data.shortDescription, data.description,
+        data.problemStatement, "No summary has been provided yet.");
+      record._industry = recordIndustry(record);
+      record._subdomains = subdomainNames(data);
+      return record;
     }
 
     async function loadCollection(collection, constraints = []) {
@@ -588,16 +622,21 @@
 
     async function loadLibrary() {
       try {
+        const publicView = state.dataView === "public";
         const results = await Promise.allSettled([
-          loadCollection("usecases", [
-            ["status", "==", "published"],
-            ["visibility", "==", "public"],
-            ["publicationReady", "==", true]
-          ]),
-          loadCollection("caseStudies", [
-            ["status", "==", "published"],
-            ["visibility", "==", "public"]
-          ]),
+          publicView
+            ? loadCollection("usecases", [
+                ["status", "==", "published"],
+                ["visibility", "==", "public"],
+                ["publicationReady", "==", true]
+              ])
+            : loadCollection("usecases"),
+          publicView
+            ? loadCollection("caseStudies", [
+                ["status", "==", "published"],
+                ["visibility", "==", "public"]
+              ])
+            : loadCollection("caseStudies"),
           loadCollection("domains"),
           loadCollection("subdomains")
         ]);
@@ -620,7 +659,20 @@
           ? results[1].value.map(record => normalizeRecord(record.id, record, "caseStudy"))
           : [];
 
-        state.records = [...usecases, ...caseStudies];
+        const domainRecords = results[2].status === "fulfilled"
+          ? results[2].value.map(record => normalizeRecord(record.id, record, "domain"))
+          : [];
+        const subdomainRecords = results[3].status === "fulfilled"
+          ? results[3].value.map(record => normalizeRecord(record.id, record, "subdomain"))
+          : [];
+
+        state.records = publicView
+          ? [...usecases, ...caseStudies]
+          : [...domainRecords, ...subdomainRecords, ...usecases, ...caseStudies];
+
+        $("view-note").textContent = publicView
+          ? "Approved public records only."
+          : "Test mode · all domains, subdomains, use cases, and case studies are visible to anyone visiting this page.";
 
         populateFilters();
         updateStats();
@@ -679,6 +731,10 @@
 
     function updateStats() {
       $("total-count").textContent = state.records.length;
+      $("domain-count").textContent =
+        state.records.filter(record => record._type === "domain").length;
+      $("subdomain-count").textContent =
+        state.records.filter(record => record._type === "subdomain").length;
       $("usecase-count").textContent =
         state.records.filter(record => record._type === "usecase").length;
       $("casestudy-count").textContent =
@@ -759,7 +815,9 @@
 
         paragraph.textContent = hasPublishedRecords
           ? "Try a different search term or reset one or more filters."
-          : "No records have been published for public viewing yet. As the TNHE research team approves and publishes use cases and case studies in Firebase, they will appear here automatically.";
+          : state.dataView === "all"
+            ? "No records are available in this collection yet."
+            : "No records have been published for public viewing yet. As the TNHE research team approves and publishes use cases and case studies in Firebase, they will appear here automatically.";
 
         box.append(heading, paragraph);
 
@@ -781,9 +839,16 @@
 
         const top = document.createElement("div");
         top.className = "card-top";
-        addChip(top, record._type === "usecase" ? "Use case" : "Case study",
+        const typeLabels = {
+          domain: "Domain", subdomain: "Subdomain", usecase: "Use case", caseStudy: "Case study"
+        };
+        addChip(top, typeLabels[record._type] || "Record",
           record._type === "caseStudy" ? "case-study" : "");
-        addChip(top, evidenceLabel(record), "evidence");
+        const stateLabel = firstText(record.status, record.visibility);
+        addChip(top, record.evidenceStatus || record.evidenceLevel
+          ? evidenceLabel(record)
+          : humanize(stateLabel || "Status not set"), "evidence");
+        if (record.publicationReady === false) addChip(top, "Not publication ready", "evidence");
 
         const title = document.createElement("h3");
         title.textContent = record._title;
@@ -847,7 +912,7 @@
 
       const type = document.createElement("div");
       type.className = "eyebrow";
-      type.textContent = record._type === "usecase" ? "AI use case" : "Real-world case study";
+      type.textContent = ({ domain: "Domain", subdomain: "Subdomain", usecase: "AI use case", caseStudy: "Case study" })[record._type] || "Record";
       content.appendChild(type);
 
       const title = document.createElement("h2");
@@ -916,6 +981,20 @@
         });
       }
 
+      if (state.dataView === "all") {
+        appendTextBlock(content, "Record ID", record.id);
+        const allFields = Object.fromEntries(
+          Object.entries(record).filter(([key]) => !key.startsWith("_"))
+        );
+        const heading = document.createElement("h3");
+        heading.textContent = "All stored fields";
+        content.appendChild(heading);
+        const pre = document.createElement("pre");
+        pre.className = "record-json";
+        pre.textContent = JSON.stringify(allFields, null, 2);
+        content.appendChild(pre);
+      }
+
       $("details-dialog").showModal();
     }
 
@@ -932,6 +1011,21 @@
       .forEach(id => $(id).addEventListener(
         id === "search" ? "input" : "change", renderCards
       ));
+
+    function setDataView(view) {
+      state.dataView = view;
+      const isAll = view === "all";
+      $("all-data-btn").setAttribute("aria-pressed", String(isAll));
+      $("public-view-btn").setAttribute("aria-pressed", String(!isAll));
+      ["search", "type-filter", "industry-filter", "subdomain-filter", "evidence-filter"]
+        .forEach(id => $(id).value = "");
+      $("cards").innerHTML = '<div class="state"><h3>Loading records</h3><p>Fetching the selected library view.</p></div>';
+      $("results-count").textContent = "Loading…";
+      loadLibrary();
+    }
+
+    $("public-view-btn").addEventListener("click", () => setDataView("public"));
+    $("all-data-btn").addEventListener("click", () => setDataView("all"));
 
     $("close-dialog").addEventListener("click", () => $("details-dialog").close());
 
